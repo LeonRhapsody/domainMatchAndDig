@@ -13,6 +13,15 @@ import (
 )
 
 func main() {
+	// （解析次数 IP）
+	ipListFile := "./1.txt"
+
+	// IP范围文件路径(200.12.0.0/15 代播_)
+	ipRangeFile := "vip.txt"
+
+	// 输出文件路径
+	outputFile := "output.txt"
+
 	var (
 		mode    string
 		threads int
@@ -25,20 +34,14 @@ func main() {
 	} else {
 		mode = os.Args[1]
 		threads, _ = strconv.Atoi(os.Args[2])
+		if len(os.Args) > 3 {
+			ipListFile = os.Args[3]
+		}
 	}
 
 	if mode == "dig" {
 		isDig = true
 	}
-
-	// （解析次数 IP）
-	ipListFile := "1.txt"
-
-	// IP范围文件路径(200.12.0.0/15 代播_)
-	ipRangeFile := "vip.txt"
-
-	// 输出文件路径
-	outputFile := "output.txt"
 
 	// 打开 IP 清单文件
 	ipList, err := os.Open(ipListFile)
@@ -46,6 +49,7 @@ func main() {
 		log.Fatalf("Failed to open IP list file: %v", err)
 	}
 	defer ipList.Close()
+
 	// 打开输出文件
 	output, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -59,16 +63,11 @@ func main() {
 		log.Fatalf("Failed to read IP range file: %v", err)
 	}
 
-	ipList, err = os.Open(ipListFile)
-	if err != nil {
-		log.Fatalf("Failed to open IP list file %s: %v", ipListFile, err)
-	}
-	defer ipList.Close()
-
 	var lines []string
 	scanner := bufio.NewScanner(ipList)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		//清除每条记录前的所有空格
+		lines = append(lines, strings.TrimLeft(scanner.Text(), " "))
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error scanning file: %v", err)
@@ -196,6 +195,9 @@ func isInIPRanges(ip string, map1 *map[string][]net.IPNet) (bool, string) {
 func processLine(isDig bool, line string, map1 *map[string][]net.IPNet) string {
 
 	fields := strings.Fields(line)
+	if len(fields) != 2 {
+		return ""
+	}
 	var nums string
 	var ip string
 	var status string
