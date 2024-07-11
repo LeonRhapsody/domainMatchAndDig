@@ -13,6 +13,32 @@ import (
 )
 
 func main() {
+
+	result := new(Result)
+	if len(os.Args) > 1 {
+		nums, _ := strconv.Atoi(os.Args[2])
+		result = &Result{
+			InputDir:      os.Args[1],
+			FoundFilePath: make(chan string),
+			IPMap:         make(map[string]int),
+			Threads:       nums,
+			discreteMap:   make(map[string]*DiversityCalculator),
+		}
+	} else {
+		result = &Result{
+			InputDir:      "./test",
+			FoundFilePath: make(chan string),
+			IPMap:         make(map[string]int),
+			Threads:       3,
+			discreteMap:   make(map[string]*DiversityCalculator),
+		}
+	}
+
+	go result.offlineWatch()
+	result.execTransfer()
+
+	os.Exit(1)
+
 	// （解析次数 IP）
 	ipListFile := "./1.txt"
 
